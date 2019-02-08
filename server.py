@@ -42,7 +42,6 @@ def register_process():
 
     email = request.form.get("email")
     password = request.form.get("password")
-    print(User.query.filter_by(email=email).first())
     if User.query.filter_by(email=email).first()==[]:
         user = User(email=email,
                     password=password)
@@ -62,14 +61,18 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
         user = User.query.filter_by(email=email).first()
-        sql_password = user.password
 
-        if password == sql_password:
-            session['user_id'] = user.user_id
-            flash("Logged in.")
-            return redirect("/")
+        if user == None: # handling exception when the user doesn't exist
+            flash("You have not yet registered. Please register")
+            return redirect("/register")
         else:
-            flash("Invalid credentials")
+            sql_password = user.password
+            if password == sql_password:
+                session['user_id'] = user.user_id
+                flash("Logged in.")
+                return redirect("/")
+            else:
+                flash("Invalid credentials")
 
     return render_template('login.html')
 
@@ -81,7 +84,22 @@ def logout():
     flash("Logged out.")
     return redirect("/")
 
+@app.route("/users/<user_id>")
+def user_info(user_id):
 
+    user = User.query.filter_by(user_id=user_id).first()
+    age = user.age
+    zipcode = user.zipcode
+    info = []
+    for rating in user.ratings:
+        movie_id = rating.movie_id
+        title = Movie.query.filter_by(movie_id=movie_id).first().title
+        score = rating.score
+        info.append((title, score))
+
+    print(info)
+
+    return render_template("/")
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
